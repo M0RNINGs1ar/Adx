@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
-import { FaHome, FaHandPointer, FaUsers, FaRocket, FaClipboardList, FaRedo, FaClock, FaBatteryFull } from "react-icons/fa";
+import { FaHome, FaHandPointer, FaRocket, FaClipboardList, FaRedo, FaClock, FaBatteryFull } from "react-icons/fa";
 import Flag from "react-world-flags";
 import "./App.css";
+
+// Global declaration for Adsgram (Add this at the top of the file)
+declare global {
+  interface Window {
+    Adsgram: any; // Declaring the Adsgram object on the window interface
+  }
+}
 
 function App() {
   const AdController = window.Adsgram.init({
     blockId: "int-7245",
     debug: false,
     debugBannerType: "FullscreenMedia"
-  });// Initialize Adsgram AdController with blockId
+  });
+
   const [isEnglish, setIsEnglish] = useState(true);
   const [clickedElement, setClickedElement] = useState<string | null>(null);
   const [remainingClicks, setRemainingClicks] = useState(1000);
@@ -23,15 +31,8 @@ function App() {
   const [multiplyClicksLevel, setMultiplyClicksLevel] = useState(0);
   const [reduceClickTimeCost, setReduceClickTimeCost] = useState(50);
 
-  const [energyLimitActive, setEnergyLimitActive] = useState(false);
-
-  // Task Timer States
-  const [showCheckButton, setShowCheckButton] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(10);
-  const [taskStarted, setTaskStarted] = useState(false);
-  const [taskCompleted, setTaskCompleted] = useState(false);
-  const [hasClaimedPoints, setHasClaimedPoints] = useState(false);
-  const [adCount, setAdCount] = useState(0); // Track the number of ads watched
+  // State for tracking the number of ads watched
+  const [adCount, setAdCount] = useState<number>(0); // Initialize adCount with 0
 
   const handleWatchAdClick = () => {
     if (isAdWatching) return; // Prevent multiple clicks while ad is watching
@@ -46,9 +47,9 @@ function App() {
       AdController.show()
         .then(() => {
           console.log("Ad loaded successfully.");
-          setAdCount((prev) => prev + 1); // Increase ad count after successfully watching an ad
+          setAdCount((prev: number) => prev + 1); // Increase ad count after successfully watching an ad
         })
-        .catch((error) => {
+        .catch((error: Error) => {
           console.error("Error loading ad:", error); // If there is an error, log it in the console
         })
         .finally(() => {
@@ -133,7 +134,6 @@ function App() {
 
     setEnergyLimitLevel((prev) => prev + 1);
     setRemainingClicks(1000 + 1000 * energyLimitLevel);
-    setEnergyLimitActive(true);
     setBalance((prev) => prev - cost);
     localStorage.setItem("balance", (balance - cost).toString());
     setMessage(isEnglish ? `Energy Limit Activated! Level ${energyLimitLevel}` : `تم تفعيل حد الطاقة! المستوى ${energyLimitLevel}`);
@@ -160,42 +160,6 @@ function App() {
     }, 3000);
   };
 
-  const startTask = () => {
-    if (taskStarted) return;
-
-    setTaskStarted(true);
-    setShowCheckButton(true);
-
-    setTimeLeft(10);
-    setTaskCompleted(false);
-    setHasClaimedPoints(false);
-
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime === 1) {
-          clearInterval(timer);
-        }
-        return prevTime - 1;
-      });
-    }, 1000);
-  };
-
-  const handleCheckClick = () => {
-    if (timeLeft > 0) {
-      setMessage(isEnglish ? "You must complete the task to get your points!" : "يجب عليك إتمام المهمة للحصول على نقاطك!");
-      setTimeout(() => setMessage(""), 3000);
-      return;
-    }
-
-    if (!hasClaimedPoints) {
-      setBalance((prev) => prev + 20);
-      localStorage.setItem("balance", (balance + 20).toString());
-      setHasClaimedPoints(true);
-      setMessage(isEnglish ? "Mission completed! You received 20 points." : "تم إتمام المهمة! حصلت على 20 نقطة.");
-      setTimeout(() => setMessage(""), 3000);
-    }
-  };
-
   const handleJoinZooClick = () => {
     window.location.href = "https://t.me/zoo_story_bot/game?startapp=ref1409700382"; 
   };
@@ -218,21 +182,8 @@ function App() {
         onClick={handleWatchAdClick}
         className="text-black bg-white py-3 px-8 rounded-full mb-4 flex items-center justify-center"
       >
-        {isEnglish ? `Watch Ad ${adCount}` : `شاهد الإعلان ${adCount}`}
+        {isEnglish ? `Watch Ad` : `شاهد الإعلان`}
       </button>
-      {showCheckButton && (
-        <>
-          <div className="text-white mb-4">
-            {isEnglish ? `Time left: ${timeLeft}s` : `الوقت المتبقي: ${timeLeft}s`}
-          </div>
-          <button
-            onClick={handleCheckClick}
-            className="text-black bg-white py-3 px-8 rounded-full mb-4 flex items-center justify-center"
-          >
-            {isEnglish ? "Check" : "تحقق"}
-          </button>
-        </>
-      )}
     </div>
   );
 
@@ -273,6 +224,11 @@ function App() {
         {isEnglish ? "Balance" : "الرصيد"}: {balance}
       </div>
 
+      {/* Display ad count */}
+      <div className="text-lg text-white mb-2">
+        {isEnglish ? `Ads Watched: ${adCount}` : `الإعلانات التي تم مشاهدتها: ${adCount}`}
+      </div>
+
       <div className="absolute top-4 left-4 text-xl text-black bg-white border-4 border-white rounded-full px-4 py-2 font-bold">
         {remainingClicks} / {1000}
       </div>
@@ -282,9 +238,8 @@ function App() {
       </div>
 
       <h1
-        className="text-3xl font-bold text-black bg-white border-4 border-white rounded-full px-6 py-3 cursor-pointer"
-        onClick={incrementClickCount}
-        disabled={remainingClicks <= 0}
+        className={`text-3xl font-bold text-black bg-white border-4 border-white rounded-full px-6 py-3 cursor-pointer ${remainingClicks <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+        onClick={remainingClicks > 0 ? incrementClickCount : undefined}
       >
         {isEnglish ? "Click Me!" : "انقر هنا!"}
       </h1>
@@ -322,30 +277,20 @@ function App() {
         <span className="text-sm mt-1">{isEnglish ? "Home" : "الصفحة الرئيسية"}</span>
       </div>
 
-      <div className="absolute bottom-6 left-25 transform -translate-x-1/2 flex flex-col items-center p-2 cursor-pointer duration-0 boosters-button"
-        onClick={() => {
-          setClickedElement("boosters");
-          setBoostersActive(true);
-        }}
+      <div className="absolute bottom-6 left-24 flex flex-col items-center p-2 cursor-pointer transition-all duration-200"
+        onClick={() => setBoostersActive(!boostersActive)}
       >
         <FaRocket size={28} />
         <span className="text-sm mt-1">{isEnglish ? "Boosters" : "المعززات"}</span>
       </div>
-
-      <div className="absolute bottom-6 right-20 transform -translate-x-1/2 flex flex-col items-center p-2 cursor-pointer transition-all duration-200 tasks-button"
+      <div className="absolute bottom-6 left-40 flex flex-col items-center p-2 cursor-pointer transition-all duration-200"
         onClick={() => {
           setClickedElement("tasks");
+          setBoostersActive(false);
         }}
       >
         <FaClipboardList size={28} />
         <span className="text-sm mt-1">{isEnglish ? "Tasks" : "المهام"}</span>
-      </div>
-
-      <div className="absolute bottom-6 right-1 flex flex-col items-center p-2 cursor-pointer transition-all duration-200 friends-button"
-        onClick={() => {}}
-      >
-        <FaUsers size={28} />
-        <span className="text-sm mt-1">{isEnglish ? "Friends" : "الأصدقاء"}</span>
       </div>
     </div>
   );
