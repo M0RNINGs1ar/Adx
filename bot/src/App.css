@@ -1,0 +1,212 @@
+/* Background Star Floating Effect */
+.floating-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.star {
+  position: absolute;
+  animation: float 10s infinite linear;
+  animation-timing-function: ease-in-out;
+  opacity: 0.6;
+  animation-name: star-animation;
+}
+
+@keyframes star-animation {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-200px) scale(1.5);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Basic styling to ensure everything is aligned correctly */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #000;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+/* Title style */
+h1 {
+  font-size: 3rem;
+  text-align: center;
+}
+
+/* Button styling */
+button {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+/* Text styles */
+.text-lg {
+  font-size: 1.5rem;
+}
+
+.text-6xl {
+  font-size: 3.75rem;
+}
+
+.text-white {
+  color: white;
+}
+
+.bg-black {
+  background-color: black;
+}
+
+.bg-white {
+  background-color: white;
+}
+
+/* Hover effects */
+.hover\:text-[#B0B0B0]:hover {
+  color: #b0b0b0;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Smooth transition effect */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+.hover\:bg-opacity-70:hover {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Adjust flag icon size */
+.flag {
+  width: 30px;
+  height: 20px;
+}
+
+/* Positioning helpers */
+.absolute {
+  position: absolute;
+}
+
+.top-4 {
+  top: 1rem;
+}
+
+.right-4 {
+  right: 1rem;
+}
+
+.left-8 {
+  left: 2rem;
+}
+
+.right-8 {
+  right: 2rem;
+}
+
+.bottom-4 {
+  bottom: 1rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+/* Position and animation for the flag toggle */
+.flag-toggle {
+  animation: flipFlag 0.5s ease;
+}
+
+@keyframes flipFlag {
+  0% {
+    transform: rotateY(0);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Mobile responsiveness adjustments */
+@media (max-width: 768px) {
+  /* Font size adjustments for smaller screens */
+  .text-lg {
+    font-size: 1.25rem;
+  }
+  .text-6xl {
+    font-size: 3rem;
+  }
+
+  /* Adjust button sizes for mobile */
+  .home-button, .friends-button {
+    padding: 1rem;
+  }
+
+  /* Adjust position for mobile screens */
+  .absolute {
+    position: absolute;
+  }
+}
+
+@media (max-width: 480px) {
+  /* For very small screens */
+  .text-3xl {
+    font-size: 2rem;
+  }
+  .home-button, .friends-button {
+    padding: 1rem;
+  }
+}
+
+/* Button transition and active state for Home and Friends */
+.home-button, .friends-button {
+  transition: all 0.3s ease;
+}
+
+.home-button:hover, .friends-button:hover {
+  transform: scale(1.05);
+}
+
+.home-button.active, .friends-button.active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Styling for the 'Watch Ad' button */
+.watch-ad-button {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  background-color: white;
+  border: 2px solid #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.watch-ad-button:hover {
+  background-color: rgba(255, 255, 255, 0.7);
+  transform: scale(1.05);
+}
+
+/* Styling for the count text and animations */
+.text-6xl {
+  font-size: 4rem;
+  font-weight: bold;
+}
