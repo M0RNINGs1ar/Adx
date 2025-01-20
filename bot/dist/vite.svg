@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Icon</title>
+</head>
+<body>
+  <!-- Replacing the SVG icon with your PNG image -->
+  <img src="Adx.png" width="31.88" height="32" alt="Custom Icon">
+</body>
+</html>
