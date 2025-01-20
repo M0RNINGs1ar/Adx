@@ -29,29 +29,24 @@
   }
 }
 
-/* Basic styling to ensure everything is aligned correctly */
+/* Body Styling */
 body {
   font-family: Arial, sans-serif;
   background-color: #000;
   color: white;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
-/* Title style */
+/* Title Style */
 h1 {
   font-size: 3rem;
   text-align: center;
+  margin-bottom: 1rem;
 }
 
-/* Button styling */
-button {
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-}
-
-/* Text styles */
+/* Text Styles */
 .text-lg {
   font-size: 1.5rem;
 }
@@ -84,14 +79,6 @@ button {
 /* Smooth transition effect */
 .transition-all {
   transition: all 0.3s ease;
-}
-
-.hover\:scale-105:hover {
-  transform: scale(1.05);
-}
-
-.hover\:bg-opacity-70:hover {
-  background-color: rgba(255, 255, 255, 0.7);
 }
 
 /* Adjust flag icon size */
@@ -145,7 +132,6 @@ button {
 
 /* Mobile responsiveness adjustments */
 @media (max-width: 768px) {
-  /* Font size adjustments for smaller screens */
   .text-lg {
     font-size: 1.25rem;
   }
@@ -153,41 +139,102 @@ button {
     font-size: 3rem;
   }
 
-  /* Adjust button sizes for mobile */
   .home-button, .friends-button {
     padding: 1rem;
+    font-size: 1rem;
   }
 
-  /* Adjust position for mobile screens */
+  .boosters-button {
+    padding: 12px 20px;
+    font-size: 1.1rem;
+  }
+
   .absolute {
     position: absolute;
   }
 }
 
 @media (max-width: 480px) {
-  /* For very small screens */
   .text-3xl {
     font-size: 2rem;
   }
   .home-button, .friends-button {
     padding: 1rem;
+    font-size: 1rem;
+  }
+  .boosters-button {
+    padding: 10px 18px;
+    font-size: 1rem;
   }
 }
 
-/* Button transition and active state for Home and Friends */
+/* Button Transition and Active State */
+button, .home-button, .friends-button, .watch-ad-button {
+  transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover, .home-button:hover, .friends-button:hover, .watch-ad-button:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Boosters Button Styling */
+.boosters-button {
+  transition: none 0s ease;
+  padding: 15px 25px;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  background-color: #333;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.boosters-button:hover {
+  background-color: #444;
+  transform: none;
+}
+
+.boosters-button.active {
+  animation: popUp 0s ease forwards;
+}
+
+@keyframes popUp {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 1;
+  }
+}
+
+/* Glow Effect for Active Buttons */
+.active-button {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.active-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+}
+
+/* Fancy Hover Effect for Home Button */
 .home-button, .friends-button {
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .home-button:hover, .friends-button:hover {
-  transform: scale(1.05);
+  transform: scale(1.1);
+  box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.5);
 }
 
 .home-button.active, .friends-button.active {
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Styling for the 'Watch Ad' button */
+/* Button for Watch Ad */
 .watch-ad-button {
   font-size: 2rem;
   font-weight: bold;
@@ -205,8 +252,19 @@ button {
   transform: scale(1.05);
 }
 
-/* Styling for the count text and animations */
-.text-6xl {
-  font-size: 4rem;
-  font-weight: bold;
+/* Adjustments for the floating stars background */
+.floating-stars .star {
+  filter: blur(1px); /* Adding blur to stars for a dreamy effect */
+  opacity: 0.8;
+}
+
+/* Fancy Button Hover Effects */
+button, .home-button, .friends-button, .tasks-button, .watch-ad-button {
+  transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover, .home-button:hover, .friends-button:hover, .watch-ad-button:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
 }
