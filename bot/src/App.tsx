@@ -1,82 +1,298 @@
-﻿import React, { useState, useEffect } from "react";
-import { FaHome, FaUsers } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaHome, FaHandPointer, FaUsers, FaRocket, FaClipboardList, FaRedo, FaClock, FaBatteryFull } from "react-icons/fa";
 import Flag from "react-world-flags";
-import axios from "axios";
 import "./App.css";
 
 function App() {
-  const [isEnglish, setIsEnglish] = useState(true); // Default language is English
-  const [clickedElement, setClickedElement] = useState(null);
-  const [adCount, setAdCount] = useState(0); // Track the number of ads watched
-  const [userInfo, setUserInfo] = useState(null); // Store user info fetched from backend
-  const [isAdWatching, setIsAdWatching] = useState(false); // Track if the ad is being watched
+  const AdController = window.Adsgram.init({
+    blockId: "int-7245",
+    debug: false,
+    debugBannerType: "FullscreenMedia"
+  });// Initialize Adsgram AdController with blockId
+  const [isEnglish, setIsEnglish] = useState(true);
+  const [clickedElement, setClickedElement] = useState<string | null>(null);
+  const [remainingClicks, setRemainingClicks] = useState(1000);
+  const [isAdWatching, setIsAdWatching] = useState(false);
+  const [balance, setBalance] = useState<number>(0);
+  const [clickTime, setClickTime] = useState(1000);
+  const [boostersActive, setBoostersActive] = useState(false);
+  const [message, setMessage] = useState("");
+  const [multiplyClicks, setMultiplyClicks] = useState(1);
 
-  // Language toggle handler
+  const [energyLimitLevel, setEnergyLimitLevel] = useState(0);
+  const [multiplyClicksLevel, setMultiplyClicksLevel] = useState(0);
+  const [reduceClickTimeCost, setReduceClickTimeCost] = useState(50);
+
+  const [energyLimitActive, setEnergyLimitActive] = useState(false);
+
+  // Task Timer States
+  const [showCheckButton, setShowCheckButton] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(10);
+  const [taskStarted, setTaskStarted] = useState(false);
+  const [taskCompleted, setTaskCompleted] = useState(false);
+  const [hasClaimedPoints, setHasClaimedPoints] = useState(false);
+  const [adCount, setAdCount] = useState(0); // Track the number of ads watched
+
+  const handleWatchAdClick = () => {
+    if (isAdWatching) return; // Prevent multiple clicks while ad is watching
+
+    setIsAdWatching(true);
+
+    // Log the AdController object to check its methods
+    console.log(AdController);
+
+    // Here we'll add a check for available methods
+    if (typeof AdController.show === "function") {
+      AdController.show()
+        .then(() => {
+          console.log("Ad loaded successfully.");
+          setAdCount((prev) => prev + 1); // Increase ad count after successfully watching an ad
+        })
+        .catch((error) => {
+          console.error("Error loading ad:", error); // If there is an error, log it in the console
+        })
+        .finally(() => {
+          setIsAdWatching(false); // Reset ad watching state
+        });
+    } else {
+      // Log an error message if loadInterstitialAd method doesn't exist
+      console.error("loadInterstitialAd method is not available.");
+      setIsAdWatching(false); // Reset the ad watching state
+    }
+  };
+
+  useEffect(() => {
+    const savedBalance = localStorage.getItem("balance");
+    if (savedBalance) {
+      setBalance(Number(savedBalance));
+    }
+
+    if (remainingClicks < 1000) {
+      const intervalId = setInterval(() => {
+        setRemainingClicks((prev) => {
+          if (prev < 1000) {
+            return prev + 1;
+          } else {
+            clearInterval(intervalId);
+            return 1000;
+          }
+        });
+      }, 1000);
+      return () => clearInterval(intervalId);
+    }
+  }, [remainingClicks]);
+
   const toggleLanguage = () => {
     setIsEnglish(!isEnglish);
   };
 
-  // Function to convert numbers to Arabic numerals
-  const toArabicNumerals = (num: number) => {
-    const arabicNumerals = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
-    return num
-      .toString()
-      .split("")
-      .map((digit) => arabicNumerals[parseInt(digit)])
-      .join("");
-  };
-
-  // Fetch user info from the backend
-  useEffect(() => {
-    axios
-      .get("/api/user-info")
-      .then((response) => {
-        setUserInfo(response.data); // Store user data from the backend
-      })
-      .catch((error) => console.error("Error fetching user info:", error));
-
-    // Load the ad count from localStorage if available
-    const storedAdCount = localStorage.getItem("adCount");
-    if (storedAdCount) {
-      setAdCount(parseInt(storedAdCount, 10));
-    }
-  }, []);
-
-  // Increment ad count and save to localStorage
-  const incrementCounter = () => {
-    if (isAdWatching) return; // Prevent multiple clicks before the delay
+  const incrementClickCount = () => {
+    if (isAdWatching || remainingClicks <= 0) return;
     setIsAdWatching(true);
 
     setTimeout(() => {
-      const updatedAdCount = adCount + 1;
-      setAdCount(updatedAdCount);
-
-      // Save updated ad count in localStorage to persist across sessions
-      localStorage.setItem("adCount", updatedAdCount);
-
-      // Send updated ad count to the backend to save it in the database (optional)
-      axios
-        .post("/api/increment-ad-count", { adCount: updatedAdCount })
-        .then((response) => console.log("Ad count updated"))
-        .catch((error) => console.error("Error updating ad count:", error));
-
-      setIsAdWatching(false); // Allow further clicks after the delay
-    }, 15000); // 15-second delay
+      setRemainingClicks((prev) => prev - 1);
+      setBalance((prev) => prev + multiplyClicks);
+      localStorage.setItem("balance", (balance + multiplyClicks).toString());
+      setIsAdWatching(false);
+    }, clickTime);
   };
 
-  // Handle Home Button Click
-  const handleHomeClick = () => {
-    setClickedElement("home");
+  const activateMultiply = () => {
+    const cost = 50 * Math.pow(2, multiplyClicksLevel);
+    if (balance < cost) {
+      showMessage(cost);
+      return;
+    }
+
+    setMultiplyClicksLevel((prev) => prev + 1);
+    setMultiplyClicks((prev) => prev * 2);
+    setBalance((prev) => prev - cost);
+    localStorage.setItem("balance", (balance - cost).toString());
+    setMessage("");
   };
 
-  // Handle Friends Button Click
-  const handleFriendsClick = () => {
-    setClickedElement("friends");
+  const activateRefill = () => {
+    const cost = 50 * Math.pow(2, multiplyClicksLevel);
+    if (balance < cost) {
+      showMessage(cost);
+      return;
+    }
+    setRemainingClicks(1000 + 100 * multiplyClicksLevel);
+    setBalance((prev) => prev - cost);
+    localStorage.setItem("balance", (balance - cost).toString());
+    setMessage("");
   };
+
+  const activateEnergyLimit = () => {
+    const cost = 100 * Math.pow(2, energyLimitLevel);
+    if (balance < cost) {
+      showMessage(cost);
+      return;
+    }
+
+    setEnergyLimitLevel((prev) => prev + 1);
+    setRemainingClicks(1000 + 1000 * energyLimitLevel);
+    setEnergyLimitActive(true);
+    setBalance((prev) => prev - cost);
+    localStorage.setItem("balance", (balance - cost).toString());
+    setMessage(isEnglish ? `Energy Limit Activated! Level ${energyLimitLevel}` : `تم تفعيل حد الطاقة! المستوى ${energyLimitLevel}`);
+  };
+
+  const activateReduceClickTime = () => {
+    const cost = reduceClickTimeCost * 2;
+    if (balance < cost) {
+      showMessage(cost);
+      return;
+    }
+
+    setClickTime((prev) => Math.max(prev - 500, 200));
+    setBalance((prev) => prev - cost);
+    localStorage.setItem("balance", (balance - cost).toString());
+    setReduceClickTimeCost((prev) => prev * 2);
+    setMessage("");
+  };
+
+  const showMessage = (cost: number) => {
+    setMessage(isEnglish ? `You need ${cost} clicks to activate this!` : `أنت بحاجة إلى ${cost} نقرة لتفعيل هذا!`);
+    setTimeout(() => {
+      setMessage(""); 
+    }, 3000);
+  };
+
+  const startTask = () => {
+    if (taskStarted) return;
+
+    setTaskStarted(true);
+    setShowCheckButton(true);
+
+    setTimeLeft(10);
+    setTaskCompleted(false);
+    setHasClaimedPoints(false);
+
+    const timer = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime === 1) {
+          clearInterval(timer);
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+  };
+
+  const handleCheckClick = () => {
+    if (timeLeft > 0) {
+      setMessage(isEnglish ? "You must complete the task to get your points!" : "يجب عليك إتمام المهمة للحصول على نقاطك!");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
+    if (!hasClaimedPoints) {
+      setBalance((prev) => prev + 20);
+      localStorage.setItem("balance", (balance + 20).toString());
+      setHasClaimedPoints(true);
+      setMessage(isEnglish ? "Mission completed! You received 20 points." : "تم إتمام المهمة! حصلت على 20 نقطة.");
+      setTimeout(() => setMessage(""), 3000);
+    }
+  };
+
+  const handleJoinZooClick = () => {
+    window.location.href = "https://t.me/zoo_story_bot/game?startapp=ref1409700382"; 
+  };
+
+  const renderTaskScreen = () => (
+    <div className="w-full bg-black text-white font-bold flex flex-col max-w-xl justify-center items-center p-6">
+      <h2 className="text-2xl mb-4">{isEnglish ? "Task" : "المهمة"}</h2>
+      {message && (
+        <div className="text-red-500 mb-4">
+          {message}
+        </div>
+      )}
+      <button
+        onClick={handleJoinZooClick}
+        className="text-black bg-white py-3 px-8 rounded-full mb-4 flex items-center justify-center"
+      >
+        {isEnglish ? "Join Zoo" : "الانضمام إلى الحديقة"}
+      </button>
+      <button
+        onClick={handleWatchAdClick}
+        className="text-black bg-white py-3 px-8 rounded-full mb-4 flex items-center justify-center"
+      >
+        {isEnglish ? `Watch Ad ${adCount}` : `شاهد الإعلان ${adCount}`}
+      </button>
+      {showCheckButton && (
+        <>
+          <div className="text-white mb-4">
+            {isEnglish ? `Time left: ${timeLeft}s` : `الوقت المتبقي: ${timeLeft}s`}
+          </div>
+          <button
+            onClick={handleCheckClick}
+            className="text-black bg-white py-3 px-8 rounded-full mb-4 flex items-center justify-center"
+          >
+            {isEnglish ? "Check" : "تحقق"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const renderBoosters = () => (
+    <div className="w-full bg-black text-white font-bold flex flex-col max-w-xl justify-center items-center p-6">
+      <h2 className="text-2xl mb-4">{isEnglish ? "Boosters" : "المعززات"}</h2>
+      {message && (
+        <div className="text-red-500 mb-4">
+          {message}
+        </div>
+      )}
+      <button onClick={activateMultiply} className="text-black bg-white py-3 px-8 rounded-full mb-4 flex items-center justify-center">
+        <FaHandPointer size={20} className="mr-2" />
+        {isEnglish ? `Multiply Clicks : LvL ${multiplyClicksLevel}` : `مضاعفة النقرات : المستوى ${multiplyClicksLevel}`}
+      </button>
+      <button onClick={activateRefill} className="text-black bg-white py-3 px-8 rounded-full mb-4 flex items-center justify-center">
+        <FaRedo size={20} className="mr-2" />
+        {isEnglish ? `Refill Clicks` : `إعادة تعبئة النقاط`}
+      </button>
+      <button onClick={activateReduceClickTime} className="text-black bg-white py-3 px-8 rounded-full mb-2 flex items-center justify-center">
+        <FaClock size={20} className="mr-2" />
+        {isEnglish ? `Reduce Click Time` : `تقليل وقت النقر`}
+      </button>
+      <button onClick={activateEnergyLimit} className="text-black bg-white py-3 px-8 rounded-full mt-4 flex items-center justify-center">
+        <FaBatteryFull size={20} className="mr-2" />
+        {isEnglish ? `Energy Limit : LvL ${energyLimitLevel}` : `حد الطاقة : المستوى ${energyLimitLevel}`}
+      </button>
+    </div>
+  );
+
+  const renderHomeScreen = () => (
+    <div className="w-full bg-black text-white font-bold flex flex-col max-w-xl justify-center items-center">
+      <div className="absolute top-4 right-4 cursor-pointer" onClick={toggleLanguage}>
+        <Flag code={isEnglish ? "US" : "SA"} alt="flag" width={30} height={20} />
+      </div>
+
+      <div className="text-xl text-white mb-2">
+        {isEnglish ? "Balance" : "الرصيد"}: {balance}
+      </div>
+
+      <div className="absolute top-4 left-4 text-xl text-black bg-white border-4 border-white rounded-full px-4 py-2 font-bold">
+        {remainingClicks} / {1000}
+      </div>
+
+      <div className="text-lg text-white mb-2">
+        {isEnglish ? "Clicks Available" : "النقرات المتاحة"}
+      </div>
+
+      <h1
+        className="text-3xl font-bold text-black bg-white border-4 border-white rounded-full px-6 py-3 cursor-pointer"
+        onClick={incrementClickCount}
+        disabled={remainingClicks <= 0}
+      >
+        {isEnglish ? "Click Me!" : "انقر هنا!"}
+      </h1>
+    </div>
+  );
 
   return (
     <div className="bg-black flex justify-center items-center h-screen relative overflow-hidden">
-      {/* Background Stars */}
       <div className="floating-stars">
         {[...Array(30)].map((_, index) => (
           <div
@@ -86,7 +302,7 @@ function App() {
               animationDelay: `${Math.random() * 10}s`,
               fontSize: `${Math.random() * 20 + 15}px`,
               left: `${Math.random() * 100}%`,
-              animationDuration: `${Math.random() * 10 + 5}s`
+              animationDuration: `${Math.random() * 10 + 5}s`,
             }}
           >
             ✨
@@ -94,61 +310,42 @@ function App() {
         ))}
       </div>
 
-      <div className="w-full bg-black text-white font-bold flex flex-col max-w-xl justify-center items-center">
-        {/* Language Toggle Button (Flag) */}
-        <div className="absolute top-4 right-4 cursor-pointer" onClick={toggleLanguage}>
-          <Flag code={isEnglish ? "US" : "SA"} alt="flag" width={30} height={20} />
-        </div>
+      {clickedElement === "tasks" ? renderTaskScreen() : boostersActive ? renderBoosters() : renderHomeScreen()}
 
-        {/* Display Ads Watched Text */}
-        <div className="text-lg text-white mb-2">
-          {isEnglish ? "Ads Watched" : "الإعلانات المشاهدة"}
-        </div>
-
-        {/* Display the ad count */}
-        <div className="text-6xl font-bold text-white mb-4">
-          {isEnglish ? adCount : toArabicNumerals(adCount)}
-        </div>
-
-        {/* Watch Ad Button */}
-        <h1
-          className="text-3xl font-bold text-black bg-white border-4 border-white rounded-full px-6 py-3 cursor-pointer"
-          onClick={incrementCounter}
-        >
-          {isEnglish ? "Watch Ad" : "شاهد الإعلان"}
-        </h1>
+      <div className="absolute bottom-6 left-10 flex flex-col items-center p-2 cursor-pointer transition-all duration-200 home-button"
+        onClick={() => {
+          setClickedElement("home");
+          setBoostersActive(false);
+        }}
+      >
+        <FaHome size={28} />
+        <span className="text-sm mt-1">{isEnglish ? "Home" : "الصفحة الرئيسية"}</span>
       </div>
 
-      {/* Home Button */}
-      <div
-        className={`absolute bottom-6 left-14 flex flex-col items-center p-2 cursor-pointer transition-all duration-200 home-button ${
-          clickedElement === "home" ? "text-white" : "text-[#C0C0C0]"
-        } hover:text-[#B0B0B0]`}
-        onClick={handleHomeClick}
+      <div className="absolute bottom-6 left-25 transform -translate-x-1/2 flex flex-col items-center p-2 cursor-pointer duration-0 boosters-button"
+        onClick={() => {
+          setClickedElement("boosters");
+          setBoostersActive(true);
+        }}
       >
-        <FaHome
-          size={28}
-          className={`${clickedElement === "home" ? "text-white" : "text-[#C0C0C0]"}`}
-        />
-        <span className={`${clickedElement === "home" ? "text-white" : "text-[#C0C0C0]"} text-sm mt-1`}>
-          {isEnglish ? "Home" : "الصفحة الرئيسية"}
-        </span>
+        <FaRocket size={28} />
+        <span className="text-sm mt-1">{isEnglish ? "Boosters" : "المعززات"}</span>
       </div>
 
-      {/* Friends Button */}
-      <div
-        className={`absolute bottom-6 right-14 flex flex-col items-center p-2 cursor-pointer transition-all duration-200 friends-button ${
-          clickedElement === "friends" ? "text-white" : "text-[#C0C0C0]"
-        } hover:text-[#B0B0B0]`}
-        onClick={handleFriendsClick}
+      <div className="absolute bottom-6 right-20 transform -translate-x-1/2 flex flex-col items-center p-2 cursor-pointer transition-all duration-200 tasks-button"
+        onClick={() => {
+          setClickedElement("tasks");
+        }}
       >
-        <FaUsers
-          size={28}
-          className={`${clickedElement === "friends" ? "text-white" : "text-[#C0C0C0]"}`}
-        />
-        <span className={`${clickedElement === "friends" ? "text-white" : "text-[#C0C0C0]"} text-sm mt-1`}>
-          {isEnglish ? "Friends" : "الأصدقاء"}
-        </span>
+        <FaClipboardList size={28} />
+        <span className="text-sm mt-1">{isEnglish ? "Tasks" : "المهام"}</span>
+      </div>
+
+      <div className="absolute bottom-6 right-1 flex flex-col items-center p-2 cursor-pointer transition-all duration-200 friends-button"
+        onClick={() => {}}
+      >
+        <FaUsers size={28} />
+        <span className="text-sm mt-1">{isEnglish ? "Friends" : "الأصدقاء"}</span>
       </div>
     </div>
   );
