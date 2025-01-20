@@ -217,7 +217,7 @@ function App() {
   const renderHomeScreen = () => (
     <div className="w-full bg-black text-white font-bold flex flex-col max-w-xl justify-center items-center">
       <div className="absolute top-4 right-4 cursor-pointer" onClick={toggleLanguage}>
-        <Flag code={isEnglish ? "US" : "SA"} alt="flag" width={30} height={20} />
+<Flag code={isEnglish ? "US" : "SA"} alt="flag" size={30} />
       </div>
 
       <div className="text-xl text-white mb-2">
